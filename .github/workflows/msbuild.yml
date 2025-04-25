@@ -35,7 +35,7 @@ jobs:
 
     - name: Build RiivolutionIsoBuilder
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}}
+      run: msbuild /m /p:Configuration="${{env.BUILD_CONFIGURATION}}" /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}}
 
     - name: Upload Library 1
       uses: actions/upload-artifact@v4
