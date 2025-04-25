@@ -1,0 +1,58 @@
+name: MSBuild
+on:
+  push:
+    branches: [ main ]
+  #pull_request:
+  #  branches: [ main ]
+  workflow_dispatch:
+
+env:
+  SOLUTION_FILE_PATH: ./RiivolutionIsoBuilder.sln
+  BUILD_CONFIGURATION: Release|Any CPU
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v4
+
+    - name: Cache Commit SHA
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $env:GITHUB_OUTPUT
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Add NuGet to PATH
+      uses: nuget/setup-nuget@v2
+
+    - name: NuGet Restore
+      run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Build RiivolutionIsoBuilder
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Upload Library 1
+      uses: actions/upload-artifact@v4
+      with:
+        if-no-files-found: error
+        name: WindowsAPICodePack-${{steps.vars.outputs.sha_short}}
+        path: ./**/Microsoft.WindowsAPICodePack.dll
+    - name: Upload Library 2
+      uses: actions/upload-artifact@v4
+      with:
+        if-no-files-found: error
+        name: WindowsAPICodePack.Shell-${{steps.vars.outputs.sha_short}}
+        path: ./**/Microsoft.WindowsAPICodePack.Shell.dll
+
+    - name: Upload Package
+      uses: actions/upload-artifact@v4
+      with:
+        if-no-files-found: error
+        name: RiivolutionIsoBuilder-${{steps.vars.outputs.sha_short}}
+        path: ./**/RiivolutionIsoBuilder.exe
